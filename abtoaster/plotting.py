@@ -8,7 +8,7 @@ CLRS_LT = ['#3498db', '#e74c3c', '#2ecc71', '#f1c40f']
 CLRS_DK = ['#2980b9', '#c0392b', '#27ae60', '#f1c40f']
 
 
-def __compute_stats(a, b, ax):
+def __stats(a, b, ax):
     """
     Function that compute statistics for a plot's points.
     """
@@ -97,7 +97,7 @@ def ppplot(a, b, distr_names=['First', 'Second'], figsize=(8, 8),
         ax.set_xlabel("%s cumulative distribution" % distr_names[0])
         ax.set_ylabel("%s cumulative distribution" % distr_names[1])
 
-        __compute_stats(np.array(a_p), np.array(b_p), ax)
+        __stats(np.array(a_p), np.array(b_p), ax)
         return [ax]
     else:
         fig, axs = plt.subplots(2, 2, figsize=figsize)
@@ -192,7 +192,7 @@ def qqplot(a, b, distr_names=['First', 'Second'],
         ax.set_title('Q-Q plot')
         ax.set_xlabel("%s distribution's quantiles" % distr_names[0])
         ax.set_ylabel("%s distribution's quantiles" % distr_names[1])
-        __compute_stats(np.array(q_a), np.array(q_b), ax)
+        __stats(np.array(q_a), np.array(q_b), ax)
         return [ax]
 
     else:

@@ -10,14 +10,10 @@ import matplotlib.pyplot as plt
 
 from .base import StatTest
 
-
-__all__ = [
-
-    'PermutationTest',
-]
+from .hypothesis import Parametric, NonParametric
 
 
-class PermutationTest(object):
+class PermutationTest(NonParametric):
     """
     Implementation of Fisher's permutation test.
 
@@ -57,10 +53,10 @@ class PermutationTest(object):
     def __init__(self):
         raise NotImplementedError
 
-    def compute_test_statistic(self, a, b):
+    def test_statistic(self, a, b):
         return self.diff
 
-    def compute_critical(self, a, b):
+    def critical(self, a, b):
         z = np.concatenate([a, b])
         n = len(a)
         null_dist = []
@@ -72,10 +68,10 @@ class PermutationTest(object):
         self.null_dist = np.array(null_dist)
         return np.abs(np.percentile(self.null_dist, 1 - self.alpha / 2))
 
-    def compute_p_value(self, a, b):
+    def p_value(self, a, b):
         return np.mean(np.abs(self.diff) < np.abs(self.null_dist))
 
-    def compute_confidence_intervals(self, a, b):
+    def confidence_intervals(self, a, b):
         ci = [np.percentile(self.null_dist, p*100)
               for p in [0 + self.alpha/2, 1 - self.alpha/2]]
         return ci

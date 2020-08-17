@@ -1,21 +1,23 @@
+import pandas as pd
 import numpy as np
 
-from scipy.stats import ks_2samp, entropy
+from typing import Callable
 
 
-def histogram_intersection(a, b, bins=256) -> float:
-    """Calculate percentage of two arrays' histograms intersection"""
-    minval = min(a.min(), b.min())
-    maxval = max(a.max(), b.max())
-    h1, bins= np.histogram(a, bins=bins, range=(minval, maxval), normed=True)
-    h2, _ = np.histogram(b, bins=bins, range=(minval, maxval), normed=True)
-    bins = np.diff(bins)
-    sm = 0
-    for i in range(len(bins)):
-        sm += min(bins[i]*h1[i], bins[i]*h2[i])
-    return sm
-
-def ks(a, b) -> float:
-    """Calculate D-value (test statistic) of Kolmogorov-Smirnov test"""
-    dvalue, _ = ks_2samp(a, b)
-    return dvalue
+def estimator(func: Callable):
+    """
+    Decorator for estimator functions parameter checking
+    
+    :func: is callable function of two variables with accept arrays and return array
+    """
+    def wrapper(a, b, *args, **kwargs):
+        check_x = lambda x: any([isinstance(x, tp) for tp in [np.ndarray, pd.Series, list]])
+        if all([check_x(var) for var in (a, b)]):
+            a, b = np.array(a), np.array(b)
+        else:
+            raise ValueError('Parameters should be array-like: numpy, pandas series or python list!')
+        if a.shape[0] == b.shape[0]:
+            return func(a, b)
+        else:
+            raise ValueError('Arrays should have the same length.')
+    return wrapper

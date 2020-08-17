@@ -12,12 +12,12 @@ class HypothesisTest(object):
         self.name = 'Base Test'
         self.alpha = alpha
         self.diff = b.mean() - a.mean()
-        self.statistic = self.compute_test_statistic(a, b)
-        self.critical = self.compute_critical(a, b)
-        self.p_value = self.compute_p_value(a, b)
+        self.statistic = self.test_statistic(a, b)
+        self.critical = self.critical(a, b)
+        self.p_value = self.p_value(a, b)
 
         self.sign = self.p_value <= self.alpha
-        self.confidence_intervals = self.compute_confidence_intervals(a, b)
+        self.confidence_intervals = self.confidence_intervals(a, b)
 
         if self.statistic > self.critical:
             self.result = 'E(A) < E(B)'
@@ -26,16 +26,16 @@ class HypothesisTest(object):
         else:
             self.result = 'E(A) = E(B)'
 
-    def compute_test_statistic(self, a, b):
+    def test_statistic(self, a, b):
         raise NotImplementedError
 
-    def compute_critical(self, a, b):
+    def critical(self, a, b):
         raise NotImplementedError
 
-    def compute_p_value(self, a, b):
+    def p_value(self, a, b):
         raise NotImplementedError
 
-    def compute_confidence_intervals(self, a, b):
+    def confidence_intervals(self, a, b):
         raise NotImplementedError
 
     def summary(self):
@@ -61,7 +61,7 @@ class ZTest(HypothesisTest):
         h = se * sp.stats.norm.ppf(1 - self.alpha / 2)
         return m - h, m + h
 
-    def compute_test_statistic(self, a, b):
+    def test_statistic(self, a, b):
         a_mean = a.mean()
         avar = a.var()
         na = a.size
@@ -73,20 +73,20 @@ class ZTest(HypothesisTest):
         z = ((b_mean - a_mean)) / np.sqrt(avar/na + bvar/nb)
         return z
 
-    def compute_critical(self, a, b):
+    def critical(self, a, b):
         return sp.stats.norm.ppf(1 - self.alpha / 2)
 
-    def compute_p_value(self, a, b):
+    def p_value(self, a, b):
         return 2 * (1 - sp.stats.norm.cdf(abs(self.statistic)))
 
-    def compute_confidence_intervals(self, a, b):
+    def confidence_intervals(self, a, b):
         self.significance = max(2*sp.stats.norm.cdf(abs(a.mean() - b.mean()) /
                                 (sp.stats.sem(a) + sp.stats.sem(b))) - 1, 0)
         return self.ci(a), self.ci(b)
 
 class UTest(HypothesisTest):
 
-    def compute_p_value(self, a, b):
+    def p_value(self, a, b):
         _, u_test_p_value = stats.mannwhitneyu(variant_a, variant_b)
         return u_test_p_value
 

@@ -1,14 +1,6 @@
-from .validation import FlickersCheck, SampleSizeImbalanceCheck
+from pandas import DataFrame, Series
 
-
-class InputData:
-    """A/B test input data in raw format
-    X - user attributes including test_entry_key
-    Y - daily target metric dataset with day_key
-    
-    """
-    def __init__(self, X, Y, w, test_entry_key='join_date', day_key='nday'):
-        pass
+# from .health_checks import Flickers, SampleSizeImbalance
 
 
 class ABDataset:
@@ -20,8 +12,45 @@ class ABDataset:
     - w pandas Series with A/B test variant assignments
     - y pandas Series for Target Metric
     """
-    def __init__(self, X, y, w, control_key='control'):
+    def __init__(self, X: DataFrame, y: Series, w: Series, control_keys=None, test_entry_key='join_date', verbose=True):
+        # detecting variants
+        variants = w.unique()
+        if control_keys is None:
+            control_keys = [x for x in self.variants 
+                if 'control' in x.lower() or 'holdout' in x.lower()]
+        else:
+            # TODO: check types
+            control_keys = control_keys
+        # A/B test data
+        ## features
         self.X = X
+        ## variant assignments
         self.w = w
+        ## target metric
         self.y = y
-        self.control_key = control_key
+        self.control_keys = control_keys
+        self.variants = variants
+        self.test_entry_key = test_entry_key
+        self.verbose = verbose
+
+    def health_check(self):
+        """
+        Performes A/B test health check for sample size imbalance and flickers.
+        
+        - **SampleSizeImbalanceCheck** - when variants have at least 5% difference between sample sizes
+        - **FlickersCheck**  - check for users who changed the variant during the experiment 
+        """
+        # TODO: verbose
+        checks = {}
+        results = []
+        for check_type in (Flickers, SampleSizeImbalance):
+            check = check_type(self)
+            result, is_healthy = check.check()
+            results.append(is_healthy)
+            checks.update(result)
+            if self.verbose:
+                print(result)
+        self.checks = checks
+        return all(results)
+        
+
